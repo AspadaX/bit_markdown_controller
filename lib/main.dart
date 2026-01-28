@@ -1,9 +1,7 @@
+import 'package:editor/bit_markdown/editor_parser.dart';
 import 'package:editor/bit_markdown/text_editor.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:super_editor/super_editor.dart';
-import 'package:super_editor_markdown/super_editor_markdown.dart';
 
 void main() {
   runApp(const MyApp());
@@ -36,26 +34,19 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   FocusNode focus = FocusNode();
+  FocusNode textFieldFocus = FocusNode();
   KeyEvent? key;
-  final TextEditingController textController = MarkdownTextEditingController();
-  late Editor editor;
+  final TextEditingController textController = MarkdownTextEditingController(
+    MarkdownEditorParser()
+  );
 
   @override
   void initState() {
     super.initState();
-    editor = createDefaultDocumentEditor(
-      composer: MutableDocumentComposer(),
-      document: MutableDocument.empty(),
-    );
-
-    textController.addListener(() {
-      build(context);
-    });
   }
 
   @override
   void dispose() {
-    editor.dispose();
     super.dispose();
   }
 
@@ -69,13 +60,14 @@ class _MyHomePageState extends State<MyHomePage> {
       children: [
         Padding(padding: const EdgeInsets.all(12), child: Text("$key")),
         Expanded(
-          child: EditableText(
+          child: TextField(
             maxLines: null,
-            cursorColor: CupertinoColors.activeBlue,
-            backgroundCursorColor: CupertinoColors.inactiveGray,
-            style: TextStyle(),
-            focusNode: FocusNode(),
+            focusNode: textFieldFocus,
             controller: textController,
+            keyboardType: TextInputType.multiline,
+            decoration: InputDecoration(
+              border: InputBorder.none
+            ),
           ),
         ),
       ],
@@ -129,13 +121,6 @@ class _MyHomePageState extends State<MyHomePage> {
   //     ),
   //   );
   // }
-
-  Widget buildSuperEditor() {
-    return SuperEditor(
-      editor: editor,
-      plugins: {MarkdownInlineUpstreamSyntaxPlugin()},
-    );
-  }
 
   @override
   Widget build(BuildContext context) {

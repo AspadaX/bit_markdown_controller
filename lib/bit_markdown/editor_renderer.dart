@@ -286,8 +286,8 @@ class MarkdownEditorRenderer {
     return pos;
   }
 
-  static List<InlineSpan> buildInlineSpans(String text) {
-    final elements = MarkdownEditorParser.parseDocument(text);
+  static List<InlineSpan> buildInlineSpans(String text, MarkdownEditorParser parser) {
+    final elements = parser.parseDocument(text);
     List<InlineSpan> spans = [];
     for (final element in elements) {
       spans.add(element.buildWidget());
