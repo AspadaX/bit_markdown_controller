@@ -1,0 +1,150 @@
+import 'package:editor/bit_markdown/text_editor.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:super_editor/super_editor.dart';
+import 'package:super_editor_markdown/super_editor_markdown.dart';
+
+void main() {
+  runApp(const MyApp());
+}
+
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
+  // This widget is the root of your application.
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+      ),
+      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    );
+  }
+}
+
+class MyHomePage extends StatefulWidget {
+  const MyHomePage({super.key, required this.title});
+
+  final String title;
+
+  @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  FocusNode focus = FocusNode();
+  KeyEvent? key;
+  final TextEditingController textController = MarkdownTextEditingController();
+  late Editor editor;
+
+  @override
+  void initState() {
+    super.initState();
+    editor = createDefaultDocumentEditor(
+      composer: MutableDocumentComposer(),
+      document: MutableDocument.empty(),
+    );
+
+    textController.addListener(() {
+      build(context);
+    });
+  }
+
+  @override
+  void dispose() {
+    editor.dispose();
+    super.dispose();
+  }
+
+  Future<String?> getClipboardText() async {
+    final ClipboardData? data = await Clipboard.getData(Clipboard.kTextPlain);
+    return data?.text;
+  }
+
+  Widget buildOptimizedMarkdownEditor() {
+    return Column(
+      children: [
+        Padding(padding: const EdgeInsets.all(12), child: Text("$key")),
+        Expanded(
+          child: EditableText(
+            maxLines: null,
+            cursorColor: CupertinoColors.activeBlue,
+            backgroundCursorColor: CupertinoColors.inactiveGray,
+            style: TextStyle(),
+            focusNode: FocusNode(),
+            controller: textController,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Widget buildHandRolledMarkdownEditor() {
+  //   return KeyboardListener(
+  //     autofocus: true,
+  //     focusNode: focus,
+  //     onKeyEvent: (KeyEvent keyEvent) async {
+  //       if (keyEvent is! KeyDownEvent) return;
+
+  //       final bool isPaste =
+  //           (keyEvent.logicalKey == LogicalKeyboardKey.keyV) &&
+  //           (HardwareKeyboard.instance.isControlPressed ||
+  //               HardwareKeyboard.instance.isMetaPressed);
+
+  //       if (isPaste) {
+  //         String? clipboardText = await getClipboardText();
+  //         if (clipboardText != null) {
+  //           text += clipboardText;
+  //         }
+  //         return;
+  //       }
+
+  //       if (keyEvent.physicalKey == PhysicalKeyboardKey.enter) {
+  //         text += '\n';
+  //       }
+
+  //       if (keyEvent.physicalKey == PhysicalKeyboardKey.backspace) {
+  //         if (text.isNotEmpty) {
+  //           text = text.substring(0, text.length - 1);
+  //         }
+  //       }
+
+  //       if (keyEvent.character != null) {
+  //         text += keyEvent.character!;
+  //       }
+
+  //       key = keyEvent;
+
+  //       setState(() {});
+  //     },
+  //     child: Column(
+  //       children: [
+  //         Padding(padding: const EdgeInsets.all(12), child: Text("$key")),
+  //         // ...MarkdownGenerator().buildWidgets(text),
+  //         Expanded(child: BitMarkdown(text)),
+  //       ],
+  //     ),
+  //   );
+  // }
+
+  Widget buildSuperEditor() {
+    return SuperEditor(
+      editor: editor,
+      plugins: {MarkdownInlineUpstreamSyntaxPlugin()},
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        title: Text(widget.title),
+      ),
+      body: buildOptimizedMarkdownEditor(),
+    );
+  }
+}
