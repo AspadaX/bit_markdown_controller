@@ -1,4 +1,4 @@
-import 'package:bit_markdown_editor/src/renderer.dart';
+import 'package:bit_markdown_controller/src/renderer.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'parser.dart';

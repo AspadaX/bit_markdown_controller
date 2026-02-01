@@ -1,5 +1,6 @@
-import 'package:bit_markdown_editor/src/renderer.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+
+import 'renderer.dart';
 
 abstract class MarkdownElement {
   InlineSpan buildWidget();

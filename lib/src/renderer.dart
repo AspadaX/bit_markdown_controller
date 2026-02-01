@@ -1,9 +1,10 @@
-import 'package:bit_markdown_editor/src/elements.dart';
-import 'package:bit_markdown_editor/src/parser.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_math_fork/flutter_math.dart';
+
+import 'elements.dart';
+import 'parser.dart';
 
 class MarkdownEditorRenderer {
   static void Function(String url)? onLinkTap;

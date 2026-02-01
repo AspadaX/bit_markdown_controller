@@ -1,4 +1,4 @@
-import 'package:bit_markdown_editor/src/elements.dart';
+import 'elements.dart';
 
 class MarkdownEditorParser {
   final _numRegex = RegExp(r'^\d+\.\s+');
