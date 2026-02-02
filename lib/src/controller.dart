@@ -4,6 +4,7 @@ import 'package:flutter/cupertino.dart';
 import 'parser.dart';
 
 class MarkdownTextEditingController extends TextEditingController {
+  TextStyle defaultTextStyle;
   MarkdownEditorParser parser;
   List<InlineSpan> processedInlineTextSpans = [];
   String lastText = '';
@@ -12,7 +13,7 @@ class MarkdownTextEditingController extends TextEditingController {
   List<InlineSpan> lastProcessedInlineTextSpans = [];
   bool isRebuild = false;
 
-  MarkdownTextEditingController(this.parser);
+  MarkdownTextEditingController(this.parser, this.defaultTextStyle);
 
   Future<void> _parseAndPrepareMarkdownForRendering() async {
     processedInlineTextSpans = await MarkdownEditorRenderer.buildInlineSpans(
@@ -29,10 +30,7 @@ class MarkdownTextEditingController extends TextEditingController {
     lastProcessedTextSpan = TextSpan(
       style:
           style ??
-          const TextStyle(
-            fontSize: 16,
-            color: CupertinoColors.darkBackgroundGray,
-          ),
+          defaultTextStyle,
       children: processedInlineTextSpans,
     );
 
@@ -57,7 +55,7 @@ class MarkdownTextEditingController extends TextEditingController {
 
     // Start processing the text
     _parseAndPrepareMarkdownForRendering();
-    
+
     lastText = text;
     return lastProcessedTextSpan;
   }
