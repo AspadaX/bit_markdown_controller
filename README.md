@@ -45,7 +45,9 @@ dependencies:
 
 ```dart
 import 'package:bit_markdown_controller/bit_markdown_controller.dart';
-import 'package:bit_markdown_controller/src/parser.dart'; // Import parser
+// parser is exported in the main package file now, so explicit import might not be needed if using bit_markdown_controller.dart
+// but typically:
+// import 'package:bit_markdown_controller/src/parser.dart'; 
 ```
 
 2. Initialize the `MarkdownTextEditingController`:
@@ -62,8 +64,18 @@ class _MyEditorState extends State<MyEditor> {
   @override
   void initState() {
     super.initState();
-    // Initialize the controller with a parser
-    _controller = MarkdownTextEditingController(MarkdownEditorParser());
+    // Initialize with a default theme or basic configuration
+    _controller = MarkdownTextEditingController(
+      parser: MarkdownEditorParser(),
+      styleSheet: MarkdownStyleSheet.fromTheme(ThemeData.light()),
+    );
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Update the stylesheet when the theme changes
+    _controller.updateStyleSheet(MarkdownStyleSheet.fromTheme(Theme.of(context)));
   }
 
   @override

@@ -1,10 +1,11 @@
 import 'package:bit_markdown_controller/src/renderer.dart';
+import 'package:bit_markdown_controller/src/style_sheet.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'parser.dart';
 
 class MarkdownTextEditingController extends TextEditingController {
-  TextStyle defaultTextStyle;
+  MarkdownStyleSheet styleSheet;
   MarkdownEditorParser parser;
   List<InlineSpan> processedInlineTextSpans = [];
   String lastText = '';
@@ -13,24 +14,31 @@ class MarkdownTextEditingController extends TextEditingController {
   List<InlineSpan> lastProcessedInlineTextSpans = [];
   bool isRebuild = false;
 
-  MarkdownTextEditingController(this.parser, this.defaultTextStyle);
+  MarkdownTextEditingController({
+    required this.parser,
+    required this.styleSheet,
+  });
 
   Future<void> _parseAndPrepareMarkdownForRendering() async {
     processedInlineTextSpans = await MarkdownEditorRenderer.buildInlineSpans(
       text,
       parser,
+      styleSheet,
     );
     isRebuild = true;
     notifyListeners();
+  }
+
+  void updateStyleSheet(MarkdownStyleSheet newStyleSheet) {
+    styleSheet = newStyleSheet;
+    _parseAndPrepareMarkdownForRendering();
   }
 
   TextSpan _rebuild(TextStyle? style) {
     // Update the cache
     lastProcessedInlineTextSpans = processedInlineTextSpans;
     lastProcessedTextSpan = TextSpan(
-      style:
-          style ??
-          defaultTextStyle,
+      style: style ?? styleSheet.p,
       children: processedInlineTextSpans,
     );
 

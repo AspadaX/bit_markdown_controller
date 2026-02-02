@@ -5,37 +5,61 @@ import 'package:flutter_math_fork/flutter_math.dart';
 
 import 'elements.dart';
 import 'parser.dart';
+import 'style_sheet.dart';
 
 class MarkdownEditorRenderer {
   static void Function(String url)? onLinkTap;
 
-  static InlineSpan renderHeading(String text, int level) {
-    final size = 24.0 - (level * 2);
+  static InlineSpan renderHeading(String text, int level, MarkdownStyleSheet styleSheet) {
+    TextStyle style;
+    switch (level) {
+      case 1:
+        style = styleSheet.h1;
+        break;
+      case 2:
+        style = styleSheet.h2;
+        break;
+      case 3:
+        style = styleSheet.h3;
+        break;
+      case 4:
+        style = styleSheet.h4;
+        break;
+      case 5:
+        style = styleSheet.h5;
+        break;
+      case 6:
+        style = styleSheet.h6;
+        break;
+      default:
+        style = styleSheet.p;
+        break;
+    }
     return TextSpan(
       text: text,
-      style: TextStyle(fontSize: size, fontWeight: FontWeight.bold),
+      style: style,
     );
   }
 
-  static InlineSpan renderListItem(String text, bool ordered) {
-    final rendered = renderText(text, null);
+  static InlineSpan renderListItem(String text, bool ordered, MarkdownStyleSheet styleSheet) {
+    final rendered = renderText(text, styleSheet, style: styleSheet.listBullet);
     final textSpan = rendered is TextSpan ? rendered : TextSpan(text: text);
     return TextSpan(
       children: [
-        TextSpan(text: ordered ? '• ' : '• '),
+        TextSpan(text: ordered ? '• ' : '• ', style: styleSheet.listBullet),
         textSpan,
       ],
     );
   }
 
-  static InlineSpan renderHorizontalLine() {
+  static InlineSpan renderHorizontalLine(MarkdownStyleSheet styleSheet) {
     return const TextSpan(text: '---');
   }
 
-  static InlineSpan renderTableRow(List<String> cells) {
+  static InlineSpan renderTableRow(List<String> cells, MarkdownStyleSheet styleSheet) {
     final spans = <InlineSpan>[];
     for (var i = 0; i < cells.length; i++) {
-      final rendered = renderText(cells[i], null);
+      final rendered = renderText(cells[i], styleSheet, style: styleSheet.tableBody);
       spans.add(rendered);
       if (i != cells.length - 1) {
         spans.add(const TextSpan(text: ' | '));
@@ -44,51 +68,51 @@ class MarkdownEditorRenderer {
     return TextSpan(children: spans);
   }
 
-  static InlineSpan renderBlockQuote(String text) {
+  static InlineSpan renderBlockQuote(String text, MarkdownStyleSheet styleSheet) {
     return TextSpan(
       text: text,
-      style: const TextStyle(fontStyle: FontStyle.italic),
+      style: styleSheet.blockQuote,
     );
   }
 
-  static InlineSpan renderCodeBlock(String code, {String? language}) {
+  static InlineSpan renderCodeBlock(String code, MarkdownStyleSheet styleSheet, {String? language}) {
     final spans = <InlineSpan>[];
     if (language != null) {
       spans.add(
         TextSpan(
           text: '$language\n',
-          style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          style: styleSheet.codeBlock.copyWith(fontSize: 12, fontWeight: FontWeight.w600),
         ),
       );
     }
     spans.add(
       TextSpan(
         text: code,
-        style: const TextStyle(fontFamilyFallback: ['Courier', 'monospace'], fontSize: 14),
+        style: styleSheet.codeBlock,
       ),
     );
     return TextSpan(children: spans);
   }
 
-  static InlineSpan renderMathBlock(String expression) {
+  static InlineSpan renderMathBlock(String expression, MarkdownStyleSheet styleSheet) {
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
-      child: Math.tex(expression, textStyle: const TextStyle(fontSize: 20), mathStyle: MathStyle.display),
+      child: Math.tex(expression, textStyle: styleSheet.p.copyWith(fontSize: 20), mathStyle: MathStyle.display),
     );
   }
 
-  static InlineSpan renderMathInline(String expression) {
+  static InlineSpan renderMathInline(String expression, MarkdownStyleSheet styleSheet) {
     return TextSpan(
       children: [
         WidgetSpan(
           alignment: PlaceholderAlignment.middle,
-          child: Math.tex(expression, textStyle: const TextStyle(fontSize: 16), mathStyle: MathStyle.text),
+          child: Math.tex(expression, textStyle: styleSheet.p.copyWith(fontSize: 16), mathStyle: MathStyle.text),
         ),
       ],
     );
   }
 
-  static InlineSpan renderImage(String url, {String? altText, String? title}) {
+  static InlineSpan renderImage(String url, MarkdownStyleSheet styleSheet, {String? altText, String? title}) {
     return TextSpan(
       children: [
         WidgetSpan(
@@ -110,10 +134,10 @@ class MarkdownEditorRenderer {
     );
   }
 
-  static InlineSpan renderLink(String text, String url, {String? title, void Function(String url)? onTap}) {
+  static InlineSpan renderLink(String text, String url, MarkdownStyleSheet styleSheet, {String? title, void Function(String url)? onTap}) {
     return TextSpan(
       text: text,
-      style: const TextStyle(color: Colors.blue, decoration: TextDecoration.underline),
+      style: styleSheet.link,
       recognizer: TapGestureRecognizer()
         ..onTap = () {
           if (onTap != null) onTap(url);
@@ -121,7 +145,7 @@ class MarkdownEditorRenderer {
     );
   }
 
-  static InlineSpan renderText(String text, TextStyle? style) {
+  static InlineSpan renderText(String text, MarkdownStyleSheet styleSheet, {TextStyle? style}) {
     final spans = <InlineSpan>[];
     var i = 0;
 
@@ -204,7 +228,7 @@ class MarkdownEditorRenderer {
           spans.add(
             TextSpan(
               text: text.substring(i + 1, end),
-              style: const TextStyle(fontFamilyFallback: ['Courier', 'monospace'], backgroundColor: Color.fromARGB(255, 230, 230, 230)),
+              style: styleSheet.code,
             ),
           );
           i = end + 1;
@@ -219,7 +243,7 @@ class MarkdownEditorRenderer {
           spans.add(
             WidgetSpan(
               alignment: PlaceholderAlignment.middle,
-              child: Math.tex(text.substring(i + 1, end), mathStyle: MathStyle.text, textStyle: const TextStyle(fontSize: 16)),
+              child: Math.tex(text.substring(i + 1, end), mathStyle: MathStyle.text, textStyle: styleSheet.p.copyWith(fontSize: 16)),
             ),
           );
           i = end + 1;
@@ -239,7 +263,7 @@ class MarkdownEditorRenderer {
     }
 
     return TextSpan(
-      style: style ?? const TextStyle(fontSize: 16, color: Colors.black),
+      style: style ?? styleSheet.p,
       children: spans,
     );
   }
@@ -265,11 +289,11 @@ class MarkdownEditorRenderer {
     return pos;
   }
 
-  static Future<List<InlineSpan>> buildInlineSpans(String text, MarkdownEditorParser parser) async {
+  static Future<List<InlineSpan>> buildInlineSpans(String text, MarkdownEditorParser parser, MarkdownStyleSheet styleSheet) async {
     final List<MarkdownElement> elements = await compute(parser.parseDocument, text);
     List<InlineSpan> newSpans = [];
     for (final MarkdownElement element in elements) {
-      newSpans.add(element.buildWidget());
+      newSpans.add(element.buildWidget(styleSheet));
     }
 
     return newSpans;
