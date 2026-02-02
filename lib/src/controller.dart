@@ -17,6 +17,27 @@ class MarkdownTextEditingController extends TextEditingController {
     required this.parser,
     required this.styleSheet,
   });
+  
+  /// Cases
+  /// 
+  /// #| Some markdown (raw, cursor at 1)
+  ///  |Some markdown (rendered, cursor at 0)
+  /// 
+  /// # Some markdow|n (raw, cursor at 14)
+  ///  Some markdow|n (rendered, cursor at 13)
+  /// 
+  /// *italics*| (raw, cursor at 8)
+  /// italics| (raw, cursor at 6)
+  
+  @override
+  // TODO: implement value
+  TextEditingValue get value => super.value;
+  
+  @override
+  set value(TextEditingValue newValue) {
+    // TODO: implement value
+    super.value = newValue;
+  }
 
   Future<void> _parseAndPrepareMarkdownForRendering() async {
     processedInlineTextSpans = await MarkdownEditorRenderer.buildInlineSpans(
