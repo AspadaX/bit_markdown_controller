@@ -160,13 +160,21 @@ class MarkdownEditorRenderer {
     String? language,
   }) {
     final spans = <InlineSpan>[];
+    
+    // Opening backticks
+    spans.add(
+      TextSpan(
+        text: '```',
+        style: styleSheet.codeBlock.copyWith(
+          color: Colors.grey,
+        ),
+      ),
+    );
+
     if (language != null) {
       spans.add(
-        TextSpan(text: '```')
-      );
-      spans.add(
         TextSpan(
-          text: '$language\n',
+          text: language,
           style: styleSheet.codeBlock.copyWith(
             fontSize: 12,
             fontWeight: FontWeight.w600,
@@ -174,12 +182,26 @@ class MarkdownEditorRenderer {
         ),
       );
     }
+    
+    // Newline after opening
+    spans.add(TextSpan(text: '\n', style: styleSheet.codeBlock));
+    
+    // Content
     spans.add(TextSpan(text: code, style: styleSheet.codeBlock));
+    
+    // Newline before closing (if needed, but usually code block assumes block display)
+    spans.add(TextSpan(text: '\n', style: styleSheet.codeBlock));
+
+    // Closing backticks
     spans.add(
-      TextSpan(text: '```')
+      TextSpan(
+        text: '```',
+        style: styleSheet.codeBlock.copyWith(
+          color: Colors.grey,
+        ),
+      ),
     );
-    // Code block rendering here is simplified and doesn't hide backticks invisibly,
-    // it assumes they are stripped. No invisible ranges to report for now.
+    
     return RenderResult(TextSpan(children: spans), []);
   }
 
