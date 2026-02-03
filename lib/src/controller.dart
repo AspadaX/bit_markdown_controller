@@ -1,25 +1,40 @@
+import 'package:bit_markdown_controller/src/elements.dart';
 import 'package:bit_markdown_controller/src/renderer.dart';
+import 'package:bit_markdown_controller/src/style_sheet.dart';
 import 'package:flutter/cupertino.dart';
 
 import 'parser.dart';
 
 class MarkdownTextEditingController extends TextEditingController {
-  TextStyle defaultTextStyle;
+  MarkdownStyleSheet styleSheet;
   MarkdownEditorParser parser;
-  List<InlineSpan> processedInlineTextSpans = [];
+
   String lastText = '';
-  String currentText = '';
+  List<MarkdownElement> elements = [];
+
   TextSpan lastProcessedTextSpan = TextSpan();
+  List<InlineSpan> processedInlineTextSpans = [];
   List<InlineSpan> lastProcessedInlineTextSpans = [];
+
   bool isRebuild = false;
 
-  MarkdownTextEditingController(this.parser, this.defaultTextStyle);
+  MarkdownTextEditingController({
+    required this.parser,
+    required this.styleSheet,
+  });
 
-  Future<void> _parseAndPrepareMarkdownForRendering() async {
-    processedInlineTextSpans = await MarkdownEditorRenderer.buildInlineSpans(
-      text,
-      parser,
+  void _parseAndPrepareMarkdownForRendering() {
+    elements = parser.parseDocument(text);
+    processedInlineTextSpans = MarkdownEditorRenderer.buildInlineTextSpans(
+      elements,
+      styleSheet,
     );
+    isRebuild = true;
+  }
+
+  void updateStyleSheet(MarkdownStyleSheet newStyleSheet) {
+    styleSheet = newStyleSheet;
+    _parseAndPrepareMarkdownForRendering();
     isRebuild = true;
     notifyListeners();
   }
@@ -28,9 +43,7 @@ class MarkdownTextEditingController extends TextEditingController {
     // Update the cache
     lastProcessedInlineTextSpans = processedInlineTextSpans;
     lastProcessedTextSpan = TextSpan(
-      style:
-          style ??
-          defaultTextStyle,
+      style: style ?? styleSheet.p,
       children: processedInlineTextSpans,
     );
 
@@ -44,19 +57,15 @@ class MarkdownTextEditingController extends TextEditingController {
     TextStyle? style,
     required bool withComposing,
   }) {
-    if (isRebuild) {
+    if (text != lastText) {
+      _parseAndPrepareMarkdownForRendering();
+      lastText = text;
+    }
+
+    if (isRebuild || lastProcessedTextSpan.style != (style ?? styleSheet.p)) {
       return _rebuild(style);
     }
 
-    // We need to determine whether the spans are processed before updating it
-    if (text == lastText) {
-      return lastProcessedTextSpan;
-    }
-
-    // Start processing the text
-    _parseAndPrepareMarkdownForRendering();
-
-    lastText = text;
     return lastProcessedTextSpan;
   }
 }
